@@ -7,7 +7,10 @@
 //
 // testPrefix: Prefix each test case with an indicator so we know what context
 // they are run in if they are used in multiple iframes.
-const {testPrefix} = processQueryParams();
+//
+// topLevelDocument: Keep track of if we run these tests in a nested context, we
+// don't want to recurse forever.
+const {testPrefix, topLevelDocument} = processQueryParams();
 
 if (window !== window.top) {
   // WPT synthesizes a top-level HTML test for this JS file, and in that case we
@@ -20,10 +23,21 @@ test(() => {
   assert_not_equals(document.requestStorageAccess, undefined);
 }, "[" + testPrefix + "] document.requestStorageAccess() should exist on the document interface");
 
-promise_test(t => {
-  return promise_rejects_dom(t, "NotAllowedError", document.requestStorageAccess(),
+// Promise tests should all start with the feature in "prompt" state.
+promise_setup(async () => {
+  await test_driver.set_permission(
+    { name: 'storage-access' }, 'prompt');
+});
+
+promise_test(async t => {
+  if (topLevelDocument) {
+    await document.requestStorageAccess()
+    .catch(t.unreached_func("document.requestStorageAccess() call should resolve in top-level frame"));
+  } else {
+    return promise_rejects_dom(t, "NotAllowedError", document.requestStorageAccess(),
     "document.requestStorageAccess() call without user gesture");
-}, "[" + testPrefix + "] document.requestStorageAccess() should be rejected with a NotAllowedError by default with no user gesture");
+  }
+}, "[" + testPrefix + "] document.requestStorageAccess() should resolve in top-level frame or otherwise reject with a NotAllowedError with no user gesture");
 
 promise_test(
     async () => {
@@ -31,10 +45,6 @@ promise_test(
           {name: 'storage-access'}, 'granted');
 
       await RunCallbackWithGesture(() => document.requestStorageAccess());
-
-      // Cleanup
-      await test_driver.set_permission(
-          {name: 'storage-access'}, 'prompt');
     },
     '[' + testPrefix +
         '] document.requestStorageAccess() should be resolved when called properly with a user gesture');
@@ -42,9 +52,6 @@ promise_test(
 if (testPrefix == 'cross-origin-frame' || testPrefix == 'nested-cross-origin-frame') {
   promise_test(
       async t => {
-        await test_driver.set_permission(
-            {name: 'storage-access'}, 'prompt');
-
         await RunCallbackWithGesture(() => {
           return promise_rejects_dom(t, "NotAllowedError", document.requestStorageAccess(),
             "document.requestStorageAccess() call without permission");
@@ -62,10 +69,6 @@ if (testPrefix == 'cross-origin-frame' || testPrefix == 'nested-cross-origin-fra
           return promise_rejects_dom(t, "NotAllowedError", document.requestStorageAccess(),
             "document.requestStorageAccess() call without permission");
         });
-
-        // Cleanup
-        await test_driver.set_permission(
-            {name: 'storage-access'}, 'prompt');
       },
       '[' + testPrefix +
           '] document.requestStorageAccess() should be rejected with a NotAllowedError with denied permission');
