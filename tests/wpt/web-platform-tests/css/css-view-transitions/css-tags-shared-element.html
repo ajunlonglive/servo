@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html class=reftest-wait>
-<title>Shared transitions: use css tags for shared elements</title>
+<title>View transitions: use css tags for shared elements</title>
 <link rel="help" href="https://github.com/WICG/view-transitions">
 <link rel="author" href="mailto:vmpstr@chromium.org">
 <link rel="match" href="css-tags-shared-element-ref.html">
@@ -51,7 +51,7 @@ html::view-transition-old(left-element),
 html::view-transition-old(right-element) { animation: unset; opacity: 1; }
 
 html::view-transition-group(root) { animation: unset; opacity: 0; }
-html::view-transition { background: lightpink; }
+html::view-transition { width: 100%; height: 100%; background: lightpink; }
 
 </style>
 
