@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html class=reftest-wait>
-<title>Shared transitions: css tags generate pseudo elements in paint order</title>
+<title>View transitions: css tags generate pseudo elements in paint order</title>
 <link rel="help" href="https://github.com/WICG/view-transitions">
 <link rel="author" href="mailto:vmpstr@chromium.org">
 <link rel="match" href="css-tags-paint-order-with-entry-ref.html">
@@ -84,7 +84,7 @@ html::view-transition-old(two),
 html::view-transition-old(three) { animation: unset; opacity: 1; }
 
 html::view-transition-group(root) { animation: unset; opacity: 0; }
-html::view-transition { background: lightpink; }
+html::view-transition { width: 100%; height: 100%; background: lightpink; }
 
 </style>
 
