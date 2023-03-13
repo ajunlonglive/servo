@@ -153,24 +153,34 @@ def create_frame(session):
 
 
 @pytest.fixture
-def stale_element(current_session, iframe, inline):
+def stale_element(current_session, get_test_page):
     """Create a stale element reference
 
-    The given document will be loaded in the top-level or child browsing context.
-    Before the requested element is returned it is removed from the document's DOM.
+    The document will be loaded in the top-level or child browsing context.
+    Before the requested element or its shadow root is returned the element
+    is removed from the document's DOM.
     """
-    def stale_element(doc, css_value, as_frame=False):
+    def stale_element(css_value, as_frame=False, want_shadow_root=False):
+        current_session.url = get_test_page(as_frame=as_frame)
+
         if as_frame:
-            current_session.url = inline(iframe(doc))
             frame = current_session.find.css("iframe", all=False)
             current_session.switch_frame(frame)
-        else:
-            current_session.url = inline(doc)
 
         element = current_session.find.css(css_value, all=False)
+        shadow_root = element.shadow_root if want_shadow_root else None
 
         current_session.execute_script("arguments[0].remove();", args=[element])
 
-        return element
+        return shadow_root if want_shadow_root else element
 
     return stale_element
+
+
+@pytest.fixture
+def load_pdf_document(current_session, test_page_with_pdf_js):
+    """Load a PDF document in the browser using pdf.js"""
+    def load_pdf_document(encoded_pdf_data):
+        current_session.url = test_page_with_pdf_js(encoded_pdf_data)
+
+    return load_pdf_document
