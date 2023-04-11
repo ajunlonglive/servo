@@ -20,8 +20,7 @@ function ridToMid(description, rids) {
   const rtpParameters = SDPUtils.parseRtpParameters(sections[1]);
   const setupValue = description.sdp.match(/a=setup:(.*)/)[1];
   const directionValue =
-    description.sdp.match(/a=sendrecv|a=sendonly|a=recvonly|a=inactive/) ||
-    "a=sendrecv";
+    sections[1].match(/a=sendrecv|a=sendonly|a=recvonly|a=inactive/)[0];
   const mline = SDPUtils.parseMLine(sections[1]);
 
   // Skip mid extension; we are replacing it with the rid extmap
@@ -64,8 +63,7 @@ function midToRid(description, localDescription, rids) {
   const rtpParameters = SDPUtils.parseRtpParameters(sections[1]);
   const setupValue = description.sdp.match(/a=setup:(.*)/)[1];
   const directionValue =
-    description.sdp.match(/a=sendrecv|a=sendonly|a=recvonly|a=inactive/) ||
-    "a=sendrecv";
+    sections[1].match(/a=sendrecv|a=sendonly|a=recvonly|a=inactive/)[0];
   const mline = SDPUtils.parseMLine(sections[1]);
 
   // Skip rid extensions; we are replacing them with the mid extmap
@@ -195,7 +193,8 @@ function swapRidAndMidExtensionsInSimulcastAnswer(answer, localDescription, rids
   return midToRid(answer, localDescription, rids);
 }
 
-async function negotiateSimulcastAndWaitForVideo(t, rids, pc1, pc2, codec) {
+async function negotiateSimulcastAndWaitForVideo(
+    t, rids, pc1, pc2, codec, scalabilityMode = undefined) {
   exchangeIceCandidates(pc1, pc2);
 
   const metadataToBeLoaded = [];
@@ -219,6 +218,9 @@ async function negotiateSimulcastAndWaitForVideo(t, rids, pc1, pc2, codec) {
   // get {90p, 180p, 360p}.
   let scaleResolutionDownBy = 2;
   for (let i = sendEncodings.length - 1; i >= 0; --i) {
+    if (scalabilityMode) {
+      sendEncodings[i].scalabilityMode = scalabilityMode;
+    }
     sendEncodings[i].scaleResolutionDownBy = scaleResolutionDownBy;
     scaleResolutionDownBy *= 2;
   }
