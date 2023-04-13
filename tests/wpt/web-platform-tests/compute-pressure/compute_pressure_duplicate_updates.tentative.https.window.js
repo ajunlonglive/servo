@@ -11,16 +11,16 @@ pressure_test(async (t, mockPressureService) => {
       observer_changes.push(changes);
       if (++n === 2)
         resolve(observer_changes);
-    }, {sampleRate: 1.0});
+    }, {sampleRate: 5.0});
     observer.observe('cpu');
     const updatesDelivered = mockPressureService.updatesDelivered();
-    mockPressureService.setPressureUpdate('critical');
-    mockPressureService.startPlatformCollector(/*sampleRate*/ 1.0);
+    mockPressureService.setPressureUpdate('cpu', 'critical');
+    mockPressureService.startPlatformCollector(/*sampleRate*/ 5.0);
     // Deliver 2 updates.
     await t.step_wait(
         () => mockPressureService.updatesDelivered() >= (updatesDelivered + 2),
         'Wait for more than one update to be delivered to the observer');
-    mockPressureService.setPressureUpdate('nominal');
+    mockPressureService.setPressureUpdate('cpu', 'nominal');
     // Deliver more updates, |resolve()| will be called when the new pressure
     // state reaches PressureObserver and its callback is invoked
     // for the second time.
@@ -38,17 +38,17 @@ pressure_test(async (t, mockPressureService) => {
       observer_changes.push(changes);
       if (++n === 2)
         resolve(observer_changes);
-    }, {sampleRate: 1.0});
+    }, {sampleRate: 5.0});
     observer.observe('cpu');
     const updatesDelivered = mockPressureService.updatesDelivered();
-    mockPressureService.setPressureUpdate('critical', ['thermal']);
-    mockPressureService.startPlatformCollector(/*sampleRate*/ 1.0);
+    mockPressureService.setPressureUpdate('cpu', 'critical', ['thermal']);
+    mockPressureService.startPlatformCollector(/*sampleRate*/ 5.0);
 
     // Deliver 2 updates.
     await t.step_wait(
         () => mockPressureService.updatesDelivered() >= (updatesDelivered + 2),
         'Wait for more than one update to be delivered to the observer');
-    mockPressureService.setPressureUpdate('critical', ['power-supply']);
+    mockPressureService.setPressureUpdate('cpu', 'critical', ['power-supply']);
     // Deliver more updates, |resolve()| will be called when the new pressure
     // state reaches PressureObserver and its callback is invoked
     // for the second time.
